@@ -1,30 +1,28 @@
+provider: tongyi_search
+label:
+  en_US: TONGYI
+  zh_Hans: 通义千问
+icon_small:
+  en_US: icon_s_en.png
+icon_large:
+  en_US: icon_l_en.png
+  zh_Hans: icon_l_zh.png
 background: '#EFF1FE'
-configurate_methods:
-- predefined-model
-- customizable-model
-extra:
-  python:
-    model_sources:
-    - models/llm/llm.py
-    - models/rerank/rerank.py
-    - models/text_embedding/text_embedding.py
-    - models/tts/tts.py
-    - models/speech2text/speech2text.py
-    provider_source: provider/tongyi.py
 help:
   title:
     en_US: Get your API key from AliCloud
     zh_Hans: 从阿里云百炼获取 API Key
   url:
     en_US: https://bailian.console.aliyun.com/?apiKey=1#/api-key
-icon_large:
-  en_US: icon_l_en.png
-  zh_Hans: icon_l_zh.png
-icon_small:
-  en_US: icon_s_en.png
-label:
-  en_US: TONGYI
-  zh_Hans: 通义千问
+supported_model_types:
+  - llm
+  - text-embedding
+  - rerank
+  - speech2text
+  - tts
+configurate_methods:
+  - predefined-model
+  - customizable-model
 model_credential_schema:
   credential_form_schemas:
   - label:
@@ -79,6 +77,16 @@ model_credential_schema:
     placeholder:
       en_US: Enter your model name
       zh_Hans: 输入模型名称
+provider_credential_schema:
+  credential_form_schemas:
+    - label:
+        en_US: API Key
+      placeholder:
+        en_US: Enter your API Key
+        zh_Hans: 在此输入您的 API Key
+      required: true
+      type: secret-input
+      variable: dashscope_api_key
 models:
   llm:
     position: models/llm/_position.yaml
@@ -97,20 +105,12 @@ models:
   tts:
     predefined:
       - models/tts/*.yaml
-provider: tongyi
-provider_credential_schema:
-  credential_form_schemas:
-  - label:
-      en_US: API Key
-    placeholder:
-      en_US: Enter your API Key
-      zh_Hans: 在此输入您的 API Key
-    required: true
-    type: secret-input
-    variable: dashscope_api_key
-supported_model_types:
-  - llm
-  - text-embedding
-  - rerank
-  - speech2text
-  - tts
+extra:
+  python:
+    model_sources:
+      - models/llm/llm.py
+      - models/rerank/rerank.py
+      - models/text_embedding/text_embedding.py
+      - models/tts/tts.py
+      - models/speech2text/speech2text.py
+    provider_source: provider/tongyi.py
