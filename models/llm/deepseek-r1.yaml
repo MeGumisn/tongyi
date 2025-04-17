@@ -16,23 +16,23 @@ parameter_rules:
     default: 65000
   - name: enable_search
     type: boolean
-    default: 0
+    default: false
   - name: search_options
     type: boolean
-    default: 0
+    default: false
   - name: search_strategy
     type: string
     options:
       - pro
   - name: enable_source
     type: boolean
-    default: 1
+    default: true
   - name: enable_citation
     type: boolean
-    default: 1
+    default: true
   - name: force_search
     type: boolean
-    default: 0
+    default: false
 pricing:
   input: "0.004"
   output: "0.016"

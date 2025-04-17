@@ -1,7 +1,7 @@
 version: 0.0.1
 type: plugin
-author: megumisn
-name: tongyi_search
+author: tongyi
+name: tongyi
 label:
   zh_Hans: 通义千问
   en_US: TONGYI
@@ -16,7 +16,7 @@ resource:
       enabled: false
 plugins:
   models:
-    - provider/tongyi_search.yaml
+    - provider/tongyi.yaml
 meta:
   arch:
     - amd64
