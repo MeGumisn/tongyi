@@ -60,19 +60,58 @@ from dify_plugin.interfaces.model.large_language_model import LargeLanguageModel
 from openai import OpenAI
 
 
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for key, value in self.items():
+            # 递归处理嵌套字典和列表中的字典
+            self[key] = self._convert(value)
+
+    def _convert(self, value):
+        if isinstance(value, dict):  # 字典类型递归包装
+            return AttrDict(value)
+        elif isinstance(value, list):  # 列表类型遍历检查元素
+            return [self._convert(item) for item in value]
+        return value  # 其他类型直接返回
+
+    def __getattr__(self, name):
+        try:
+            value = self[name]
+            # 返回时确保列表中的字典也被包装
+            if isinstance(value, list):
+                return [AttrDict(item) if isinstance(item, dict) else item for item in value]
+            return value
+        except KeyError:
+            return AttrDict()  # 安全访问不存在的键
+
+    def to_markdown(self):
+        if not self.search_results or len(self.search_results) <1:
+            return ""
+        md_content = ["\n> ### *<small style='color: #666;'>🌐参考来源:</small>*"]
+        for item in self.search_results:
+            site_name=''
+            if len(item.site_name) > 0:
+                site_name = f'--- ({item.site_name})'
+            line = [
+                f"> [{item.index}]<small style='color: #666;'>🔗*[{item.title} {site_name}]({item.url})*</small>"
+            ]
+            md_content.extend(line)
+        return '\n'.join(md_content)
+
+
 class TongyiLargeLanguageModel(LargeLanguageModel):
     tokenizers = {}
 
     def _invoke(
-        self,
-        model: str,
-        credentials: dict,
-        prompt_messages: list[PromptMessage],
-        model_parameters: dict,
-        tools: Optional[list[PromptMessageTool]] = None,
-        stop: Optional[list[str]] = None,
-        stream: bool = True,
-        user: Optional[str] = None,
+            self,
+            model: str,
+            credentials: dict,
+            prompt_messages: list[PromptMessage],
+            model_parameters: dict,
+            tools: Optional[list[PromptMessageTool]] = None,
+            stop: Optional[list[str]] = None,
+            stream: bool = True,
+            user: Optional[str] = None,
     ) -> Union[LLMResult, Generator]:
         """
         Invoke large language model
@@ -99,11 +138,11 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         )
 
     def get_num_tokens(
-        self,
-        model: str,
-        credentials: dict,
-        prompt_messages: list[PromptMessage],
-        tools: Optional[list[PromptMessageTool]] = None,
+            self,
+            model: str,
+            credentials: dict,
+            prompt_messages: list[PromptMessage],
+            tools: Optional[list[PromptMessageTool]] = None,
     ) -> int:
         """
         Get number of tokens for given prompt messages
@@ -148,15 +187,15 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             raise CredentialsValidateFailedError(str(ex))
 
     def _generate(
-        self,
-        model: str,
-        credentials: dict,
-        prompt_messages: list[PromptMessage],
-        model_parameters: dict,
-        tools: Optional[list[PromptMessageTool]] = None,
-        stop: Optional[list[str]] = None,
-        stream: bool = True,
-        user: Optional[str] = None,
+            self,
+            model: str,
+            credentials: dict,
+            prompt_messages: list[PromptMessage],
+            model_parameters: dict,
+            tools: Optional[list[PromptMessageTool]] = None,
+            stop: Optional[list[str]] = None,
+            stream: bool = True,
+            user: Optional[str] = None,
     ) -> Union[LLMResult, Generator]:
         """
         Invoke large language model
@@ -181,16 +220,23 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         if stop:
             extra_model_kwargs["stop"] = stop
 
+        # 添加搜索选项相关属性(仅部分模型支持)
         if model_parameters.pop("search_options", False):
-            strategy = model_parameters.pop("search_strategy", 'pro')
-            enable_source = model_parameters.pop("enable_source", True)
-            enable_citation = model_parameters.pop("enable_citation", True)
+            enable_source = model_parameters.pop("enable_source", False)
+            enable_citation = model_parameters.pop("enable_citation", False)
+            search_strategy = model_parameters.pop("search_strategy", 'standard')
             force_search = model_parameters.pop("force_search", False)
+            enable_search_extension = model_parameters.pop("enable_search_extension", False)
+            enable_readpage = model_parameters.pop("enable_readpage", False)
+            enable_online_read = model_parameters.pop("enable_online_read", False)
             model_parameters["search_options"] = {
-                "strategy": strategy,
                 "enable_source": enable_source,
                 "enable_citation": enable_citation,
+                "search_strategy": search_strategy,
                 "force_search": force_search,
+                "enable_search_extension": enable_search_extension,
+                "enable_readpage": enable_readpage,
+                "enable_online_read": enable_online_read,
             }
 
         params = {
@@ -224,11 +270,11 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         )
 
     def _handle_generate_response(
-        self,
-        model: str,
-        credentials: dict,
-        response: GenerationResponse,
-        prompt_messages: list[PromptMessage],
+            self,
+            model: str,
+            credentials: dict,
+            response: GenerationResponse,
+            prompt_messages: list[PromptMessage],
     ) -> LLMResult:
         """
         Handle llm response
@@ -283,11 +329,11 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                             tool_call_obj['function']['arguments'] = args
 
     def _handle_generate_stream_response(
-        self,
-        model: str,
-        credentials: dict,
-        responses: Generator[GenerationResponse, None, None],
-        prompt_messages: list[PromptMessage],
+            self,
+            model: str,
+            credentials: dict,
+            responses: Generator[GenerationResponse, None, None],
+            prompt_messages: list[PromptMessage],
     ) -> Generator:
         """
         Handle llm stream response
@@ -309,6 +355,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             resp_finish_reason = response.output.choices[0].finish_reason
             if resp_finish_reason is not None and resp_finish_reason != "null":
                 resp_content = response.output.choices[0].message.content
+                # 以markdown方式追加搜索来源到末尾
                 if response.output.get("search_info"):
                     info = AttrDict(response.output.get("search_info"))
                     search_info = info.to_markdown()
@@ -353,6 +400,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 )
             else:
                 message = response.output.choices[0].message
+
                 resp_content, is_reasoning = self._wrap_thinking_by_reasoning_content(
                     message, is_reasoning
                 )
@@ -427,10 +475,10 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         return text.rstrip()
 
     def _convert_prompt_messages_to_tongyi_messages(
-        self,
-        credentials: dict,
-        prompt_messages: list[PromptMessage],
-        rich_content: bool = False,
+            self,
+            credentials: dict,
+            prompt_messages: list[PromptMessage],
+            rich_content: bool = False,
     ) -> list[dict]:
         """
         Convert prompt messages to tongyi messages
@@ -554,7 +602,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         return f"file://{file_path}"
 
     def _upload_file_to_tongyi(
-        self, credentials: dict, message_content: DocumentPromptMessageContent
+            self, credentials: dict, message_content: DocumentPromptMessageContent
     ) -> str:
         """
         Upload file to Tongyi
@@ -612,6 +660,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             }
             tool_definitions.append(tool_definition)
         return tool_definitions
+
     def _wrap_thinking_by_reasoning_content(self, delta: dict, is_reasoning: bool) -> tuple[str, bool]:
         """
         If the reasoning response is from delta.get("reasoning_content"), we wrap
@@ -630,7 +679,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                         reasoning_content = "\n".join(map(str, reasoning_content))
                     elif not isinstance(reasoning_content, str):
                         reasoning_content = str(reasoning_content)
-                    
+
                     if not is_reasoning:
                         content = "<think>\n" + reasoning_content
                         is_reasoning = True
@@ -652,7 +701,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 f"[wrap_thinking_by_reasoning_content-2] {ex}"
             ) from ex
         return content, is_reasoning
-    
+
     @property
     def _invoke_error_mapping(self) -> dict[type[InvokeError], list[type[Exception]]]:
         """
@@ -676,7 +725,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         }
 
     def get_customizable_model_schema(
-        self, model: str, credentials: dict
+            self, model: str, credentials: dict
     ) -> Optional[AIModelEntity]:
         """
         Architecture for defining customizable models
@@ -685,6 +734,42 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         :param credentials: model credentials
         :return: AIModelEntity or None
         """
+        rules = [
+            ParameterRule(
+                name="temperature",
+                use_template="temperature",
+                label=I18nObject(en_US="Temperature", zh_Hans="温度"),
+                type=ParameterType.FLOAT,
+            ),
+            ParameterRule(
+                name="max_tokens",
+                use_template="max_tokens",
+                default=512,
+                min=1,
+                max=int(credentials.get("max_tokens", 1024)),
+                label=I18nObject(en_US="Max Tokens", zh_Hans="最大标记"),
+                type=ParameterType.INT,
+            ),
+            ParameterRule(
+                name="top_p",
+                use_template="top_p",
+                label=I18nObject(en_US="Top P", zh_Hans="Top P"),
+                type=ParameterType.FLOAT,
+            ),
+            ParameterRule(
+                name="top_k",
+                use_template="top_k",
+                label=I18nObject(en_US="Top K", zh_Hans="Top K"),
+                type=ParameterType.FLOAT,
+            ),
+            ParameterRule(
+                name="frequency_penalty",
+                use_template="frequency_penalty",
+                label=I18nObject(en_US="Frequency Penalty", zh_Hans="重复惩罚"),
+                type=ParameterType.FLOAT,
+            ),
+        ]
+
         return AIModelEntity(
             model=model,
             label=I18nObject(en_US=model, zh_Hans=model),
@@ -705,38 +790,5 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 ),
                 ModelPropertyKey.MODE: LLMMode.CHAT.value,
             },
-            parameter_rules=[
-                ParameterRule(
-                    name="temperature",
-                    use_template="temperature",
-                    label=I18nObject(en_US="Temperature", zh_Hans="温度"),
-                    type=ParameterType.FLOAT,
-                ),
-                ParameterRule(
-                    name="max_tokens",
-                    use_template="max_tokens",
-                    default=512,
-                    min=1,
-                    max=int(credentials.get("max_tokens", 1024)),
-                    label=I18nObject(en_US="Max Tokens", zh_Hans="最大标记"),
-                    type=ParameterType.INT,
-                ),
-                ParameterRule(
-                    name="top_p",
-                    use_template="top_p",
-                    label=I18nObject(en_US="Top P", zh_Hans="Top P"),
-                    type=ParameterType.FLOAT,
-                ),
-                ParameterRule(
-                    name="top_k",
-                    use_template="top_k",
-                    label=I18nObject(en_US="Top K", zh_Hans="Top K"),
-                    type=ParameterType.FLOAT,
-                ),
-                ParameterRule(
-                    name="frequency_penalty",
-                    use_template="frequency_penalty",
-                    label=I18nObject(en_US="Frequency Penalty", zh_Hans="重复惩罚"),
-                    type=ParameterType.FLOAT,
-                ),
+            parameter_rules=rules,
         )

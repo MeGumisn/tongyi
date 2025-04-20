@@ -8,7 +8,7 @@ meta:
     version: "3.12"
   version: 0.0.1
 name: tongyi
-author: langgenius
+author: langgenius_fake
 label:
   en_US: TONGYI
   zh_Hans: 通义千问

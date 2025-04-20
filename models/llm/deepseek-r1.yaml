@@ -17,22 +17,62 @@ parameter_rules:
   - name: enable_search
     type: boolean
     default: false
+    help:
+      zh_Hans: 启用互联网搜索，模型会将搜索结果作为文本生成过程中的参考信息。
+      en_US: Enable internet search, which will include search results as reference information during text generation.
   - name: search_options
     type: boolean
     default: false
+    help:
+      zh_Hans: 互联网搜索策略配置。
+      en_US: Internet search strategy configuration.
+  - name: enable_source
+    type: boolean
+    default: false
+    help:
+      zh_Hans: 启用后，模型会返回搜索来源。
+      en_US: Enable returning search sources.
+  - name: enable_citation
+    type: boolean
+    default: false
+    help:
+      zh_Hans: 启用后，模型会在生成文本时以[1]或ref_[1]的样式添加引用信息。
+      en_US: Enable adding reference information in the form of [1] or ref_[1] to the generated text.
   - name: search_strategy
     type: string
     options:
+      - standard
       - pro
-  - name: enable_source
-    type: boolean
-    default: true
-  - name: enable_citation
-    type: boolean
-    default: true
+      - pro_ultra
+      - pro_
+      - lite
+    help:
+      zh_Hans: 搜索策略，用于控制搜索质量，质量越高速度越慢，pro_ultra > pro_ > pro > standard > lite。
+      en_US: Search strategy used to control search quality, the higher the quality, the slower the speed, pro_ultra > pro_ > pro > standard > lite.
   - name: force_search
     type: boolean
     default: false
+    help:
+      zh_Hans: 启用后，会强制使用互联网搜索功能，未启用时，大模型会根据内容自动判断是否搜索互联网。
+      en_US: Enable forcing the use of internet search functionality, and if not enabled, the model will automatically determine whether to use internet search based on the content.
+  - name: enable_search_extension
+    type: boolean
+    default: false
+    help:
+      zh_Hans: 启用后，模型会对天气、股票、金价、油价等时效性较强问题进行增强检索。
+      en_US: Enable enhanced search for weather, stock, gold price, and oil price.
+  - name: enable_readpage
+    type: boolean
+    default: false
+    help:
+      zh_Hans: 启用后，模型会读取缓存库中URL的网页内容。
+      en_US: Enable reading the web content of URLs stored in the cache.
+  - name: enable_online_read
+    type: boolean
+    default: false
+    help:
+      zh_Hans: 启用后，模型会读取在线URL的网页内容。
+      en_US: Enable reading the web content of online URLs.
 pricing:
   input: "0.004"
   output: "0.016"
