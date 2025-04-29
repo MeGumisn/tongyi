@@ -76,8 +76,55 @@ parameter_rules:
     help:
       zh_Hans: 模型内置了互联网搜索服务，该参数控制模型在生成文本时是否参考使用互联网搜索结果。启用互联网搜索，模型会将搜索结果作为文本生成过程中的参考信息，但模型会基于其内部逻辑“自行判断”是否使用互联网搜索结果。
       en_US: The model has a built-in Internet search service. This parameter controls whether the model refers to Internet search results when generating text. When Internet search is enabled, the model will use the search results as reference information in the text generation process, but the model will "judge" whether to use Internet search results based on its internal logic.
+  - name: search_options
+    type: boolean
+    default: false
+    help:
+      zh_Hans: 互联网搜索策略配置。
+      en_US: Internet search strategy configuration.
+  - name: enable_source
+    type: boolean
+    default: false
+    help:
+      zh_Hans: 启用后，模型会返回搜索来源。
+      en_US: Enable returning search sources.
+  - name: enable_citation
+    type: boolean
+    default: false
+    help:
+      zh_Hans: 启用后，模型会在生成文本时以[1]或ref_[1]的样式添加引用信息。
+      en_US: Enable adding reference information in the form of [1] or ref_[1] to the generated text.
+  - name: search_strategy
+    type: string
+    options:
+      - standard
+      - pro
+      - pro_ultra
+      - pro_
+      - lite
+    help:
+      zh_Hans: 搜索策略，用于控制搜索质量，质量越高速度越慢，pro_ultra > pro_ > pro > standard > lite。
+      en_US: Search strategy used to control search quality, the higher the quality, the slower the speed, pro_ultra > pro_ > pro > standard > lite.
+  - name: force_search
+    type: boolean
+    default: false
+    help:
+      zh_Hans: 启用后，会强制使用互联网搜索功能，未启用时，大模型会根据内容自动判断是否搜索互联网。
+      en_US: Enable forcing the use of internet search functionality, and if not enabled, the model will automatically determine whether to use internet search based on the content.
   - name: response_format
     use_template: response_format
+  - name: enable_thinking
+    type: boolean
+    default: true
+    help:
+      zh_Hans: 是否开启思考模式，适用于 Qwen3 商业版与开源版模型。
+      en_US: Whether to enable thinking mode, which is available for Qwen3 commercial and open source models.
+  - name: thinking_budget
+    type: int
+    help:
+      zh_Hans: 思考过程的最大长度，在enable_thinking为true时生效，适用于qwen-plus-2025-04-28、qwen-plus-latest、qwen-turbo-2025-04-28、qwen-turbo-latest 与 Qwen3 全系模型。
+      en_US: The maximum length of the thinking process, which is effective when enable_thinking is true, and applies to qwen-plus-2025-04-28, qwen-plus-latest, qwen-turbo-2025-04-28, qwen-turbo-latest, and the Qwen3 full series models.
+
 pricing:
   input: '0.0006'
   output: '0.0003'

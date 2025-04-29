@@ -13,7 +13,7 @@ parameter_rules:
     use_template: max_tokens
     min: 1
     max: 65792
-    default: 65000
+    default: 8192
   - name: enable_search
     type: boolean
     default: false
