@@ -113,18 +113,6 @@ parameter_rules:
       en_US: Enable forcing the use of internet search functionality, and if not enabled, the model will automatically determine whether to use internet search based on the content.
   - name: response_format
     use_template: response_format
-  - name: enable_thinking
-    type: boolean
-    default: true
-    help:
-      zh_Hans: 是否开启思考模式，适用于 Qwen3 商业版与开源版模型。
-      en_US: Whether to enable thinking mode, which is available for Qwen3 commercial and open source models.
-  - name: thinking_budget
-    type: int
-    help:
-      zh_Hans: 思考过程的最大长度，在enable_thinking为true时生效，适用于qwen-plus-2025-04-28、qwen-plus-latest、qwen-turbo-2025-04-28、qwen-turbo-latest 与 Qwen3 全系模型。
-      en_US: The maximum length of the thinking process, which is effective when enable_thinking is true, and applies to qwen-plus-2025-04-28, qwen-plus-latest, qwen-turbo-2025-04-28, qwen-turbo-latest, and the Qwen3 full series models.
-
 pricing:
   input: '0.0006'
   output: '0.0003'

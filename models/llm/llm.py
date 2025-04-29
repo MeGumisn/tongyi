@@ -85,11 +85,11 @@ class AttrDict(dict):
             return AttrDict()  # 安全访问不存在的键
 
     def to_markdown(self):
-        if not self.search_results or len(self.search_results) <1:
+        if not self.search_results or len(self.search_results) < 1:
             return ""
         md_content = ["\n> ### *<small style='color: #666;'>🌐参考来源:</small>*"]
         for item in self.search_results:
-            site_name=''
+            site_name = ''
             if len(item.site_name) > 0:
                 site_name = f'--- ({item.site_name})'
             line = [
@@ -221,6 +221,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             extra_model_kwargs["stop"] = stop
 
         # 添加搜索选项相关属性(仅部分模型支持)
+        model_parameters["enable_thinking"] = model_parameters.get("enable_thinking", False)
         if model_parameters.pop("search_options", False):
             enable_source = model_parameters.pop("enable_source", False)
             enable_citation = model_parameters.pop("enable_citation", False)
@@ -238,7 +239,6 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 "enable_readpage": enable_readpage,
                 "enable_online_read": enable_online_read,
             }
-
 
         params = {
             "model": model,
@@ -775,14 +775,18 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             rules.append(
                 ParameterRule(
                     name="enable_thinking",
-                    label=I18nObject(en_US="Whether to enable thinking mode, which is available for Qwen3 commercial and open source models.", zh_Hans="是否开启思考模式，适用于 Qwen3 商业版与开源版模型。"),
+                    label=I18nObject(
+                        en_US="Whether to enable thinking mode, which is available for Qwen3 commercial and open source models.",
+                        zh_Hans="是否开启思考模式，适用于 Qwen3 商业版与开源版模型。"),
                     type=ParameterType.BOOLEAN,
                 )
             )
             rules.append(
                 ParameterRule(
                     name="thinking_budget",
-                    label=I18nObject(en_US="The maximum length of the thinking process, which is effective when enable_thinking is true, and applies to qwen-plus-2025-04-28, qwen-plus-latest, qwen-turbo-2025-04-28, qwen-turbo-latest, and the Qwen3 full series models.", zh_Hans="思考过程的最大长度，在enable_thinking为true时生效，适用于qwen-plus-2025-04-28、qwen-plus-latest、qwen-turbo-2025-04-28、qwen-turbo-latest 与 Qwen3 全系模型。"),
+                    label=I18nObject(
+                        en_US="The maximum length of the thinking process, which is effective when enable_thinking is true, and applies to qwen-plus-2025-04-28, qwen-plus-latest, qwen-turbo-2025-04-28, qwen-turbo-latest, and the Qwen3 full series models.",
+                        zh_Hans="思考过程的最大长度，在enable_thinking为true时生效，适用于qwen-plus-2025-04-28、qwen-plus-latest、qwen-turbo-2025-04-28、qwen-turbo-latest 与 Qwen3 全系模型。"),
                     type=ParameterType.INT,
                 )
             )
