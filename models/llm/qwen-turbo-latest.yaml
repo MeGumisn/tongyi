@@ -105,7 +105,7 @@ parameter_rules:
     help:
       zh_Hans: 搜索策略，用于控制搜索质量，质量越高速度越慢，pro_ultra > pro_ > pro > standard > lite。
       en_US: Search strategy used to control search quality, the higher the quality, the slower the speed, pro_ultra > pro_ > pro > standard > lite.
-  - name: force_search
+  - name: forced_search
     type: boolean
     default: false
     help:

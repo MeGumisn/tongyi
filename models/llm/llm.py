@@ -226,7 +226,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             enable_source = model_parameters.pop("enable_source", False)
             enable_citation = model_parameters.pop("enable_citation", False)
             search_strategy = model_parameters.pop("search_strategy", 'standard')
-            force_search = model_parameters.pop("force_search", False)
+            forced_search  = model_parameters.pop("forced_search", False)
             enable_search_extension = model_parameters.pop("enable_search_extension", False)
             enable_readpage = model_parameters.pop("enable_readpage", False)
             enable_online_read = model_parameters.pop("enable_online_read", False)
@@ -234,7 +234,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 "enable_source": enable_source,
                 "enable_citation": enable_citation,
                 "search_strategy": search_strategy,
-                "force_search": force_search,
+                "forced_search ": forced_search,
                 "enable_search_extension": enable_search_extension,
                 "enable_readpage": enable_readpage,
                 "enable_online_read": enable_online_read,
