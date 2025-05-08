@@ -256,11 +256,26 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             params["messages"] = self._convert_prompt_messages_to_tongyi_messages(
                 credentials, prompt_messages
             )
+
+            # Qwen3 business edition (Thinking Mode), Qwen3 open-source edition, QwQ, and QVQ only supports streaming output.
+            streaming_output = stream
+            if (
+                    model in ("qwen-plus-latest", "qwen-plus-2025-04-28",
+                              "qwen-turbo-latest", "qwen-turbo-2025-04-28")
+                    and model_parameters.get("enable_thinking", False)
+            ) or model.startswith(("qwen3-", "qwq-", "qvq-")):
+                streaming_output = True
+
+            # Qwen3 open-source edition and QwQ models only supports incremental_output set to True.
+            incremental_output = False
+            if model.startswith(("qwen3-", "qwq-")):
+                incremental_output = True
+
             response = Generation.call(
                 **params,
                 result_format="message",
-                stream=stream,
-                incremental_output=False if tools else stream,
+                stream=streaming_output,
+                incremental_output=incremental_output if tools else streaming_output,
             )
         if stream:
             return self._handle_generate_stream_response(
