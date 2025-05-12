@@ -222,23 +222,22 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
 
         # 添加搜索选项相关属性(仅部分模型支持)
         model_parameters["enable_thinking"] = model_parameters.get("enable_thinking", False)
-        if model_parameters.pop("search_options", False):
-            enable_source = model_parameters.pop("enable_source", False)
-            enable_citation = model_parameters.pop("enable_citation", False)
-            search_strategy = model_parameters.pop("search_strategy", 'standard')
-            forced_search  = model_parameters.pop("forced_search", False)
-            enable_search_extension = model_parameters.pop("enable_search_extension", False)
-            enable_readpage = model_parameters.pop("enable_readpage", False)
-            enable_online_read = model_parameters.pop("enable_online_read", False)
-            model_parameters["search_options"] = {
-                "enable_source": enable_source,
-                "enable_citation": enable_citation,
-                "search_strategy": search_strategy,
-                "forced_search ": forced_search,
-                "enable_search_extension": enable_search_extension,
-                "enable_readpage": enable_readpage,
-                "enable_online_read": enable_online_read,
-            }
+        enable_source = model_parameters.pop("enable_source", False)
+        enable_citation = model_parameters.pop("enable_citation", False)
+        search_strategy = model_parameters.pop("search_strategy", 'standard')
+        forced_search  = model_parameters.pop("forced_search", False)
+        enable_search_extension = model_parameters.pop("enable_search_extension", False)
+        enable_readpage = model_parameters.pop("enable_readpage", False)
+        enable_online_read = model_parameters.pop("enable_online_read", False)
+        model_parameters["search_options"] = {
+            "enable_source": enable_source,
+            "enable_citation": enable_citation,
+            "search_strategy": search_strategy,
+            "forced_search ": forced_search,
+            "enable_search_extension": enable_search_extension,
+            "enable_readpage": enable_readpage,
+            "enable_online_read": enable_online_read,
+        }
 
         params = {
             "model": model,
