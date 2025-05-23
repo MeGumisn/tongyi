@@ -225,7 +225,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         enable_source = model_parameters.pop("enable_source", False)
         enable_citation = model_parameters.pop("enable_citation", False)
         search_strategy = model_parameters.pop("search_strategy", 'standard')
-        forced_search  = model_parameters.pop("forced_search", False)
+        forced_search = model_parameters.pop("forced_search", False)
         enable_search_extension = model_parameters.pop("enable_search_extension", False)
         enable_readpage = model_parameters.pop("enable_readpage", False)
         enable_online_read = model_parameters.pop("enable_online_read", False)
@@ -246,7 +246,6 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             **extra_model_kwargs,
         }
         model_schema = self.get_model_schema(model, credentials)
-
 
         incremental_output = False if tools else stream
 
@@ -276,7 +275,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 **params,
                 result_format="message",
                 stream=stream,
-                incremental_output=incremental_output if tools else streaming_output,
+                incremental_output=incremental_output,
             )
         if stream:
             return self._handle_generate_stream_response(
