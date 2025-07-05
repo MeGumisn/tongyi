@@ -73,6 +73,8 @@ parameter_rules:
       en_US: Used to control the repeatability when generating models. Increasing repetition_penalty can reduce the duplication of model generation. 1.0 means no punishment.
   - name: response_format
     use_template: response_format
+  - name: response_format
+    use_template: response_format
 pricing:
   input: '0.008'
   output: '0.008'

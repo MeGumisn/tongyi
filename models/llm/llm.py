@@ -87,16 +87,22 @@ class AttrDict(dict):
     def to_markdown(self):
         if not self.search_results or len(self.search_results) < 1:
             return ""
-        md_content = ["\n> ### *<small style='color: #666;'>🌐参考来源:</small>*"]
+        div_out = '<details class="group"><summary class="flex cursor-pointer select-none list-none items-center whitespace-nowrap pl-2 font-bold text-text-secondary"><div class="flex shrink-0 items-center"><svg class="mr-2 h-3 w-3 transition-transform duration-500 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>'
+        div_inner = '<div class="ml-2 border-l border-components-panel-border bg-components-panel-bg-alt p-3 text-text-secondary">'
+
+        md_content = [f"\n{div_out}🌐参考来源:</div></summary>{div_inner}"]
         for item in self.search_results:
             site_name = ''
             if len(item.site_name) > 0:
                 site_name = f'--- ({item.site_name})'
+            title = item.title
+            if len(title.replace(' ', '').strip())<=0:
+                title = f'【{item.site_name}】'
             line = [
-                f"> [{item.index}]<small style='color: #666;'>🔗*[{item.title} {site_name}]({item.url})*</small>"
+                f"<p><small style='color: #666;'>🔗[{item.index}]. <a href='{item.url}' target='_blank'>{title} {site_name}<a></small></p>"
             ]
             md_content.extend(line)
-        return '\n'.join(md_content)
+        return ''.join(md_content)+"</div></details>"
 
 
 class TongyiLargeLanguageModel(LargeLanguageModel):
@@ -210,6 +216,9 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         :param user: unique user id
         :return: full response or stream response chunk generator result
         """
+        if credentials.get("use_international_endpoint", "false") == "true":
+            import dashscope
+            dashscope.base_http_api_url = "https://dashscope-intl.aliyuncs.com/api/v1"
         credentials_kwargs = self._to_credential_kwargs(credentials)
         mode = self.get_model_mode(model, credentials)
         if model in {"qwen-turbo-chat", "qwen-plus-chat"}:
@@ -279,7 +288,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             )
         if stream:
             return self._handle_generate_stream_response(
-                model, credentials, response, prompt_messages
+                model, credentials, response, prompt_messages,incremental_output
             )
         return self._handle_generate_response(
             model, credentials, response, prompt_messages
@@ -350,6 +359,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             credentials: dict,
             responses: Generator[GenerationResponse, None, None],
             prompt_messages: list[PromptMessage],
+            incremental_output: bool,
     ) -> Generator:
         """
         Handle llm stream response
@@ -361,6 +371,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         :return: llm response chunk generator result
         """
         is_reasoning = False
+        # This is used to handle unincremental output correctly
         full_text = ""
         tool_calls = []
         for index, response in enumerate(responses):
@@ -383,10 +394,14 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 elif resp_content:
                     if isinstance(resp_content, list):
                         resp_content = resp_content[0]["text"]
-                    assistant_prompt_message.content = resp_content.replace(
-                        full_text, "", 1
-                    )
-                    full_text = resp_content
+                    if incremental_output:
+                        assistant_prompt_message.content = resp_content
+                        full_text += resp_content
+                    else:
+                        assistant_prompt_message.content = resp_content.replace(
+                            full_text, "", 1
+                        )
+                        full_text = resp_content
                 if tool_calls:
                     message_tool_calls = []
                     for tool_call_obj in tool_calls:
@@ -426,10 +441,16 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                     continue
                 if isinstance(resp_content, list):
                     resp_content = resp_content[0]["text"]
+                if incremental_output:
+                    delta = resp_content
+                    full_text += delta
+                else:
+                    delta = resp_content.replace(full_text, "", 1)
+                    full_text = resp_content
+
                 assistant_prompt_message = AssistantPromptMessage(
-                    content=resp_content.replace(full_text, "", 1)
+                    content=delta
                 )
-                full_text = resp_content
                 yield LLMResultChunk(
                     model=model,
                     prompt_messages=prompt_messages,
@@ -555,7 +576,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                             video_url = message_content.data
                             if message_content.data.startswith("data:"):
                                 raise InvokeError(
-                                    "not support base64, please set MULTIMODAL_SEND_VIDEO_FORMAT to url"
+                                    "not support base64, please set MULTIMODAL_SEND_FORMAT to url"
                                 )
                             sub_message_dict = {"video": video_url}
                             user_messages.append(sub_message_dict)
