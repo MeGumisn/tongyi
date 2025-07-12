@@ -87,22 +87,22 @@ class AttrDict(dict):
     def to_markdown(self):
         if not self.search_results or len(self.search_results) < 1:
             return ""
-        div_out = '<details class="group"><summary class="flex cursor-pointer select-none list-none items-center whitespace-nowrap pl-2 font-bold text-text-secondary"><div class="flex shrink-0 items-center"><svg class="mr-2 h-3 w-3 transition-transform duration-500 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>'
-        div_inner = '<div class="ml-2 border-l border-components-panel-border bg-components-panel-bg-alt p-3 text-text-secondary">'
+        div_out = '<details class="group"><summary class="flex cursor-pointer select-none list-none items-center whitespace-nowrap pl-2 font-bold text-text-secondary"><div class="flex shrink-0 items-center"><svg class="mr-2 h-3 w-3 transition-transform duration-500 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg><div class="system-xs-medium text-text-secondary grow font-bold">'
+        div_inner = '</div></div></summary><div class="rounded-2xl ml-2 border-l border-components-panel-border bg-components-panel-bg-alt p-3 system-xs-medium text-text-secondary grow">'
 
-        md_content = [f"\n{div_out}🌐参考来源:</div></summary>{div_inner}"]
+        md_content = [f"\n{div_out}🌐参考来源:{div_inner}"]
         for item in self.search_results:
             site_name = ''
             if len(item.site_name) > 0:
                 site_name = f'--- ({item.site_name})'
             title = item.title
-            if len(title.replace(' ', '').strip())<=0:
+            if len(title.replace(' ', '').strip()) <= 0:
                 title = f'【{item.site_name}】'
             line = [
-                f"<p><small style='color: #666;'>🔗[{item.index}]. <a href='{item.url}' target='_blank'>{title} {site_name}<a></small></p>"
+                f'<p style="margin: 0;"><small style="color: #666;">🔗[{item.index}]. <a href="{item.url}" target="_blank">{title} {site_name}<a></small></p>'
             ]
             md_content.extend(line)
-        return ''.join(md_content)+"</div></details>"
+        return ''.join(md_content) + "</div></details>"
 
 
 class TongyiLargeLanguageModel(LargeLanguageModel):
@@ -288,7 +288,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             )
         if stream:
             return self._handle_generate_stream_response(
-                model, credentials, response, prompt_messages,incremental_output
+                model, credentials, response, prompt_messages, incremental_output
             )
         return self._handle_generate_response(
             model, credentials, response, prompt_messages
@@ -374,6 +374,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         # This is used to handle unincremental output correctly
         full_text = ""
         tool_calls = []
+        search_info_added = False
         for index, response in enumerate(responses):
             if response.status_code not in {200, HTTPStatus.OK}:
                 raise ServiceUnavailableError(
@@ -382,13 +383,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             resp_finish_reason = response.output.choices[0].finish_reason
             if resp_finish_reason is not None and resp_finish_reason != "null":
                 resp_content = response.output.choices[0].message.content
-                # 以markdown方式追加搜索来源到末尾
-                if response.output.get("search_info"):
-                    info = AttrDict(response.output.get("search_info"))
-                    search_info = info.to_markdown()
-                    assistant_prompt_message = AssistantPromptMessage(content=search_info)
-                else:
-                    assistant_prompt_message = AssistantPromptMessage(content="")
+                assistant_prompt_message = AssistantPromptMessage(content="")
                 if "tool_calls" in response.output.choices[0].message:
                     self._handle_tool_call_stream(response, tool_calls, False)
                 elif resp_content:
@@ -447,7 +442,15 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 else:
                     delta = resp_content.replace(full_text, "", 1)
                     full_text = resp_content
-
+                if not search_info_added:
+                    # 获取返回的搜索信息
+                    search_result = response.output.get("search_info")
+                    # 拼接到头部
+                    if search_result:
+                        info = AttrDict(search_result)
+                        search_info = info.to_markdown()
+                        delta = search_info + "\n" + delta
+                    search_info_added = True
                 assistant_prompt_message = AssistantPromptMessage(
                     content=delta
                 )
