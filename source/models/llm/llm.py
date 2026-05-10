@@ -99,7 +99,7 @@ class AttrDict(dict):
             if len(title.replace(' ', '').strip()) <= 0:
                 title = f'【{item.site_name}】'
             line = [
-                f'<p style="margin: 0;"><small style="color: #666;">🔗[{item.index}]. <a href="{item.url}" target="_blank">{title} {site_name}<a></small></p>'
+                f'<p style="margin: 0;"><small style="color: #666;">🔗[{item.index}]. <a href="{item.url}" target="_blank">{title} {site_name}</a></small></p>'
             ]
             md_content.extend(line)
         return ''.join(md_content) + "</div></details>"
